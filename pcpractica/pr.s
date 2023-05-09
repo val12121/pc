@@ -66,11 +66,41 @@ msg_fin:    .asciiz "\nFIN DEL PROGRAMA.\n"
 
   .text
 
+print_vect:
+
+  la $s0, v1 #Guardamos en $s0 la direccion inicial de v1
+  move $s1, $zero #Counter
+  
+  lw $s2, n1
+
+  print_vect_bucle:
+
+    mul $t1, $s1, size
+    add $t1, $t1, $s0
+    l.d $f20, 0($t1)
+
+    li $v0, 3
+    mov.d $f12, $f20
+    syscall    
+
+    li $v0, 4
+    la $a0, space
+    syscall
+
+    addi $s1, 1
+
+    blt $s1, $s2, print_vect_bucle 
+
 main:
 
   li $v0, 4
   la $a0, title
   syscall
+
+  li $v0, 4
+  la $a0, newline
+  syscall
+
 
 final: 
 
@@ -80,4 +110,4 @@ final:
 
   li $v0, 10
   syscall
-  
+
