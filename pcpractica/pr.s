@@ -60,8 +60,8 @@ space:      .asciiz " "
 newline:    .asciiz "\n"
 title:      .asciiz "\nMicroexamen práctico de Principio de Computadores.\n"
 cabvec:     .asciiz "\nVector con dimension "
-msg_ord:    .asciiz "\nVector ordenado estrictamente decrecite\n"
-msg_no_ord: .asciiz "\nVector NO ordenado estrictamente decrecite\n"
+msg_ord:    .asciiz "\nVector ordenado estrictamente decreciente\n"
+msg_no_ord: .asciiz "\nVector NO ordenado estrictamente decreciente\n"
 msg_fin:    .asciiz "\nFIN DEL PROGRAMA.\n"
 
   .text
@@ -136,6 +136,8 @@ check:
     li $v0, 1
     jr $ra
 
+  check_fin:
+
 ordenado:
 
   addi $sp, -24
@@ -157,40 +159,50 @@ ordenado:
 
   ordenado_bucle:
 
-  mul $t1, $s4, size
-  add $t1, $t1, $s0
-  l.d $f12, 0($t1)
+    mul $t1, $s4, size
+    add $t1, $t1, $s0
+    l.d $f12, 0($t1)
 
-  addi $s4, 1
-    
-  add $t1, $t1, size
-  l.d $f14, 0($t1)
+    addi $s4, 1
+      
+    add $t1, $t1, size
+    l.d $f14, 0($t1)
 
-  jal check 
+    jal check 
 
-  bne $v0, -1, no_decreciente
-  blt $s4, $s1, ordenado_bucle
+    bne $v0, 1, no_decreciente
+    blt $s4, $s1, ordenado_bucle
 
-  li $v0, 0
-
-  j ordenado_
+    j ordenado_
 
   no_decreciente: 
 
-  li $v0, 1
-  jr $ra
+    li $v0, 1
+
+    lw $s0, 0($sp)
+    lw $s1, 4($sp)
+    lw $s2, 8($sp)
+    lw $s3, 12($sp)
+    lw $s4, 16($sp)
+    lw $ra, 20($sp)
+    addi $sp, 24
+
+    jr $ra
 
   ordenado_:
 
-  addi $sp, 24
-  lw $s0, 0($sp)
-  lw $s1, 4($sp)
-  lw $s2, 8($sp)
-  lw $s3, 12($sp)
-  lw $s4, 16($sp)
-  lw $ra, 20($sp)
+    li $v0, 0
 
-  jr $ra
+    lw $s0, 0($sp)
+    lw $s1, 4($sp)
+    lw $s2, 8($sp)
+    lw $s3, 12($sp)
+    lw $s4, 16($sp)
+    lw $ra, 20($sp)
+    addi $sp, 24
+
+    jr $ra
+
   ordenado_bucle_fin:
 
 main:
@@ -213,20 +225,33 @@ main:
   la $a0, newline
   syscall
 
-  la $a0, v2 #Guardamos en $a0 la direccion inicial de v2
-  lw $a1, n2 #Numero de elementos de v2
-  la $a2, space #Guardamos la direccion de la cadena de espacio
-
-  jal print_vect
-
-  li $v0, 4
-  la $a0, newline
-  syscall
-
   la $a0, v1 #Guardamos en $a0 la direccion inicial de v1
   lw $a1, n1 #Numero de elementos
   
   jal ordenado
+
+  move $s5, $v0
+
+  beq $s5, 1, resultado_no_decreciente #En caso de no ser decreciente
+  beq $s5, 0, resultado_decreciente #En caso de ser decreciente
+
+resultado_decreciente:
+
+  li $v0, 4
+  la $a0, msg_ord
+  syscall
+
+  j volver
+
+resultado_no_decreciente:
+
+  li $v0, 4
+  la $a0, msg_no_ord
+  syscall
+
+  j volver 
+
+volver:
 
   li $v0, 4
   la $a0, newline
@@ -237,12 +262,36 @@ main:
   la $a2, space #Guardamos la direccion de la cadena de espacio
 
   jal print_vect
-  
+
   li $v0, 4
   la $a0, newline
   syscall
 
-    
+  la $a0, v2 #Guardamos en $a0 la direccion inicial de v2
+  lw $a1, n2 #Numero de elementos
+  
+  jal ordenado
+
+  move $s5, $v0
+
+  beq $s5, 1, resultado_no_decreciente_v #En caso de no ser decreciente
+  beq $s5, 0, resultado_decreciente_v #En caso de ser decreciente
+
+resultado_decreciente_v:
+
+  li $v0, 4
+  la $a0, msg_ord
+  syscall
+
+  j final
+
+resultado_no_decreciente_v:
+
+  li $v0, 4
+  la $a0, msg_no_ord
+  syscall
+
+  j final
 
 final: 
 
@@ -252,4 +301,3 @@ final:
 
   li $v0, 10
   syscall
-
