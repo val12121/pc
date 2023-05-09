@@ -68,10 +68,16 @@ msg_fin:    .asciiz "\nFIN DEL PROGRAMA.\n"
 
 print_vect:
 
-  la $s0, v1 #Guardamos en $s0 la direccion inicial de v1
+  addi $sp, -12
+  sw $s0, 0($sp)
+  sw $s1, 4($sp)
+  sw $s2, 8($sp)
+
+  move $s0, $a0
+  move $s2, $a1
+  move $s3, $a2
+
   move $s1, $zero #Counter
-  
-  lw $s2, n1
 
   print_vect_bucle:
 
@@ -84,12 +90,106 @@ print_vect:
     syscall    
 
     li $v0, 4
-    la $a0, space
+    move $a0, $s3
     syscall
 
     addi $s1, 1
 
     blt $s1, $s2, print_vect_bucle 
+
+    lw $s0, 0($sp)
+    lw $s1, 4($sp)
+    lw $s2, 8($sp)
+    addi $sp, 12
+
+    j $ra
+
+  print_vec_fin:  
+
+check:
+
+  mov.d $f16, $f12
+  mov.d $f18, $f14
+
+  c.eq.d $f16, $f18
+  bc1t check_igual
+
+  c.lt.d $f16, $f18
+  bc1t check_menor
+
+  bc1f check_mayor
+
+  check_igual:
+
+    li $v0, 0
+    j $ra
+
+  check_menor:
+
+    li $v0, -1
+    j $ra
+
+  check_mayor:
+
+    li $v0, 1
+    j $ra
+
+ordenado:
+
+  addi $sp, -24
+
+  sw $s0, 0($sp)
+  sw $s1, 4($sp)
+  sw $s2, 8($sp)
+  sw $s3, 12($sp)
+  sw $s4, 16($sp)
+  sw $ra, 20($sp)
+
+  move $s0, $a0 #Dirección inicial
+  move $s1, $a1 #Número de elementos
+
+  li $s3, 1 #Resultado
+  li $s4, 0 #Counter
+
+  sub $s1, $s1, 1
+
+  ordenado_bucle:
+
+  mul $t1, $s4, size
+  add $t1, $t1, $s0
+  lw $a0, 0($t1)
+
+  addi $s4, 1
+    
+  add $t1, $t1, size
+  lw $a1, 0($t1)
+
+  jal check 
+
+  bne $v0, -1, no_decreciente
+  blt $s4, $s1, ordenado_bucle
+
+  li $v0, 0
+
+  j ordenado
+
+  no_decreciente: 
+
+  li $v0, 1
+  j $ra
+
+  ordenado:
+
+  addi $sp, 24
+  lw $s0, 0($sp)
+  lw $s1, 4($sp)
+  lw $s2, 8($sp)
+  lw $s3, 12($sp)
+  lw $s4, 16($sp)
+  lw $ra, 20($sp)
+
+  j $ra
+  ordenado_bucle_fin:
 
 main:
 
@@ -101,6 +201,34 @@ main:
   la $a0, newline
   syscall
 
+  la $a0, v1 #Guardamos en $a0 la direccion inicial de v1
+  lw $a1, n1 #Numero de elementos
+  la $a2, space #Guardamos la direccion de la cadena de espacio
+
+  jal print_vect
+
+  li $v0, 4
+  la $a0, newline
+  syscall
+
+  la $a0, v1 #Guardamos en $a0 la direccion inicial de v1
+  lw $a1, n1 #Numero de elementos
+  
+  jal ordenado
+
+  li $v0, 4
+  la $a0, newline
+  syscall
+
+  la $a0, v2 #Guardamos en $a0 la direccion inicial de v1
+  lw $a1, n2 #Numero de elementos
+  la $a2, space #Guardamos la direccion de la cadena de espacio
+
+  jal print_vect
+  
+  li $v0, 4
+  la $a0, newline
+  syscall
 
 final: 
 
