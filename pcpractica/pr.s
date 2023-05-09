@@ -68,10 +68,11 @@ msg_fin:    .asciiz "\nFIN DEL PROGRAMA.\n"
 
 print_vect:
 
-  addi $sp, -12
+  addi $sp, -16
   sw $s0, 0($sp)
   sw $s1, 4($sp)
   sw $s2, 8($sp)
+  sw $ra, 12($sp)
 
   move $s0, $a0
   move $s2, $a1
@@ -100,9 +101,10 @@ print_vect:
     lw $s0, 0($sp)
     lw $s1, 4($sp)
     lw $s2, 8($sp)
-    addi $sp, 12
+    lw $ra, 12($sp)
+    addi $sp, 16
 
-    j $ra
+    jr $ra
 
   print_vec_fin:  
 
@@ -122,17 +124,17 @@ check:
   check_igual:
 
     li $v0, 0
-    j $ra
+    jr $ra
 
   check_menor:
 
     li $v0, -1
-    j $ra
+    jr $ra
 
   check_mayor:
 
     li $v0, 1
-    j $ra
+    jr $ra
 
 ordenado:
 
@@ -157,12 +159,12 @@ ordenado:
 
   mul $t1, $s4, size
   add $t1, $t1, $s0
-  lw $a0, 0($t1)
+  l.d $f12, 0($t1)
 
   addi $s4, 1
     
   add $t1, $t1, size
-  lw $a1, 0($t1)
+  l.d $f14, 0($t1)
 
   jal check 
 
@@ -171,14 +173,14 @@ ordenado:
 
   li $v0, 0
 
-  j ordenado
+  j ordenado_
 
   no_decreciente: 
 
   li $v0, 1
-  j $ra
+  jr $ra
 
-  ordenado:
+  ordenado_:
 
   addi $sp, 24
   lw $s0, 0($sp)
@@ -188,7 +190,7 @@ ordenado:
   lw $s4, 16($sp)
   lw $ra, 20($sp)
 
-  j $ra
+  jr $ra
   ordenado_bucle_fin:
 
 main:
@@ -202,7 +204,17 @@ main:
   syscall
 
   la $a0, v1 #Guardamos en $a0 la direccion inicial de v1
-  lw $a1, n1 #Numero de elementos
+  lw $a1, n1 #Numero de elementos de v1
+  la $a2, space #Guardamos la direccion de la cadena de espacio
+
+  jal print_vect
+
+  li $v0, 4
+  la $a0, newline
+  syscall
+
+  la $a0, v2 #Guardamos en $a0 la direccion inicial de v2
+  lw $a1, n2 #Numero de elementos de v2
   la $a2, space #Guardamos la direccion de la cadena de espacio
 
   jal print_vect
@@ -229,6 +241,8 @@ main:
   li $v0, 4
   la $a0, newline
   syscall
+
+    
 
 final: 
 
